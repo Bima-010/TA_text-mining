@@ -43,28 +43,25 @@ def load_models():
     return vectorizer, svd, kmeans
 
 # Fungsi untuk memprediksi kluster
-def predict_cluster(text, vectorizer, svd, kmeans):
+def predict_cluster(text, vectorizer, kmeans):
     cleaned_text = clean_text(text)
     processed_text = remove_stopwords_and_lemmatize(cleaned_text)
     
     # Gunakan vocabulary yang sudah ada dari vectorizer yang dilatih
     text_vector = vectorizer.transform([processed_text])
     
-    # Pastikan jumlah fitur sesuai dengan yang diharapkan oleh SVD
-    if text_vector.shape[1] != svd.components_.shape[1]:
-        # Pad atau kurangi fitur agar sesuai dengan yang diharapkan SVD
-        expected_features = svd.components_.shape[1]
+    # Pastikan jumlah fitur sesuai dengan yang diharapkan oleh KMeans
+    expected_features = kmeans.n_features_in_
+    if text_vector.shape[1] != expected_features:
         if text_vector.shape[1] < expected_features:
             # Pad dengan nol jika kurang
             padded_vector = np.pad(text_vector.toarray(), ((0, 0), (0, expected_features - text_vector.shape[1])), mode='constant')
         else:
             # Kurangi fitur jika lebih (ambil subset)
             padded_vector = text_vector.toarray()[:, :expected_features]
-        text_svd = svd.transform(padded_vector)
-    else:
-        text_svd = svd.transform(text_vector.toarray())
+        text_vector = padded_vector
     
-    cluster_num = kmeans.predict(text_svd)[0]
+    cluster_num = kmeans.predict(text_vector)[0]
     # Mapping cluster number to label
     cluster_labels = {0: "Insiden dan Penalti", 1: "Kemenangan dan Prestasi", 2: "Dominasi dan Persaingan"}
     return cluster_labels.get(cluster_num, "Klaster Tidak Dikenali")
@@ -88,7 +85,7 @@ def generate_wordcloud(cluster_label, vectorizer, kmeans):
 
 # Aplikasi Streamlit
 st.title("YouTube Comment Cluster Predictor")
-st.write("Masukkan kata atau kalimat untuk memprediksi kluster komentar YouTube terkait F1 2024. (Jam: 10:46 WIB, 24 Juni 2025)")
+st.write("Masukkan kata atau kalimat untuk memprediksi kluster komentar YouTube terkait F1 2024. (Jam: 10:55 WIB, 24 Juni 2025)")
 
 # Input teks
 user_input = st.text_area("Masukkan teks:", "")
@@ -97,7 +94,7 @@ if st.button("Prediksi"):
     if user_input:
         try:
             vectorizer, svd, kmeans = load_models()
-            cluster_label = predict_cluster(user_input, vectorizer, svd, kmeans)
+            cluster_label = predict_cluster(user_input, vectorizer, kmeans)
             st.success(f"Teks termasuk dalam **{cluster_label}**")
             
             # Tampilkan word cloud untuk klaster
