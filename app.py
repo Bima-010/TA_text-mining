@@ -85,7 +85,7 @@ def generate_wordcloud(cluster_label, vectorizer, kmeans):
 
 # Aplikasi Streamlit
 st.title("YouTube Comment Cluster Predictor")
-st.write("Masukkan kata atau kalimat untuk memprediksi kluster komentar YouTube terkait F1 2024. (Jam: 10:55 WIB, 24 Juni 2025)")
+st.write("Masukkan kata atau kalimat untuk memprediksi kluster komentar YouTube terkait F1 2024.(Menggunakan Bahasa Inggris)")
 
 # Input teks
 user_input = st.text_area("Masukkan teks:", "")
