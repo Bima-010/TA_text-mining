@@ -33,9 +33,9 @@ def remove_stopwords_and_lemmatize(text):
 
 @st.cache_resource
 def load_models():
-    vectorizer = joblib.load('models/tfidf_vectorizer.pkl')
-    svd = joblib.load('models/svd_model.pkl')
-    kmeans = joblib.load('models/kmeans_model.pkl')
+    vectorizer = joblib.load('tfidf_vectorizer.pkl')
+    svd = joblib.load('svd_model.pkl')
+    kmeans = joblib.load('kmeans_model.pkl')
     return vectorizer, svd, kmeans
 
 def predict_cluster(text, vectorizer, svd, kmeans):
