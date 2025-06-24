@@ -16,7 +16,6 @@ nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
 
-# Fungsi untuk membersihkan teks
 def clean_text(text):
     text = text.lower()
     text = re.sub(r"http\S+|www\S+|https\S+", '', text)
@@ -26,7 +25,6 @@ def clean_text(text):
     text = re.sub(r"\s+", ' ', text).strip()
     return text
 
-# Fungsi untuk menghapus stopwords dan lematisasi
 def remove_stopwords_and_lemmatize(text):
     stop_words = set(stopwords.words('english'))
     lemmatizer = WordNetLemmatizer()
@@ -34,7 +32,6 @@ def remove_stopwords_and_lemmatize(text):
     cleaned_tokens = [lemmatizer.lemmatize(token) for token in tokens if token not in stop_words]
     return ' '.join(cleaned_tokens)
 
-# Memuat model yang disimpan
 @st.cache_resource
 def load_models():
     vectorizer = joblib.load('tfidf_vectorizer.pkl')
@@ -42,15 +39,12 @@ def load_models():
     kmeans = joblib.load('kmeans_model.pkl')
     return vectorizer, svd, kmeans
 
-# Fungsi untuk memprediksi kluster
 def predict_cluster(text, vectorizer, kmeans):
     cleaned_text = clean_text(text)
     processed_text = remove_stopwords_and_lemmatize(cleaned_text)
     
-    # Gunakan vocabulary yang sudah ada dari vectorizer yang dilatih
     text_vector = vectorizer.transform([processed_text])
     
-    # Pastikan jumlah fitur sesuai dengan yang diharapkan oleh KMeans
     expected_features = kmeans.n_features_in_
     if text_vector.shape[1] != expected_features:
         if text_vector.shape[1] < expected_features:
@@ -62,16 +56,13 @@ def predict_cluster(text, vectorizer, kmeans):
         text_vector = padded_vector
     
     cluster_num = kmeans.predict(text_vector)[0]
-    # Mapping cluster number to label
     cluster_labels = {0: "Insiden dan Penalti", 1: "Kemenangan dan Prestasi", 2: "Dominasi dan Persaingan"}
     return cluster_labels.get(cluster_num, "Klaster Tidak Dikenali")
 
-# Fungsi untuk membuat word cloud
 def generate_wordcloud(cluster_label, vectorizer, kmeans):
     cluster_map = {"Insiden dan Penalti": 0, "Kemenangan dan Prestasi": 1, "Dominasi dan Persaingan": 2}
     cluster_num = cluster_map.get(cluster_label, 0)
     
-    # Dapatkan fitur (kata) dari vectorizer
     terms = vectorizer.get_feature_names_out()
     cluster_center = kmeans.cluster_centers_[cluster_num]
     word_freq = {terms[i]: cluster_center[i] for i in range(len(terms)) if cluster_center[i] > 0}
@@ -83,11 +74,9 @@ def generate_wordcloud(cluster_label, vectorizer, kmeans):
     ax.set_title(f"Word Cloud untuk {cluster_label}")
     return fig
 
-# Aplikasi Streamlit
 st.title("YouTube Comment Cluster Predictor")
 st.write("Masukkan kata atau kalimat untuk memprediksi kluster komentar YouTube terkait F1 2024.(Menggunakan Bahasa Inggris)")
 
-# Input teks
 user_input = st.text_area("Masukkan teks:", "")
 
 if st.button("Prediksi"):
